@@ -1,7 +1,9 @@
 const express = require('express')
 const {auth} = require('../middleware/auth')
 const UserController = require('../controllers/user')
+const User = require('../models/user')
 const router = new express.Router()
+const{sendWelcomeEmail, sendGoodbyeEmail} = require('../emails/account')
 
 router.post("/users", UserController.users_createuser)
 
@@ -54,12 +56,12 @@ router.patch('/users/me', auth , async(req,res) => {
 
 router.delete('/users/me', auth, async(req,res) => {
     try {
-        const user = await req.user.remove()
-        sendGoodbyeEmail(user.email,user.name)
-
+        const user = await User.findByCredentials(req.user.email,req.user.password)
         if(!user){
             return res.status(400).send()
         }
+        await req.user.remove()
+        sendGoodbyeEmail(user.email,user.name)
         res.send(req.user)
     } catch(e){
         res.status(400).send(e)

@@ -73,12 +73,12 @@ exports.users_editProfile = async(req,res) => {
 
 exports.users_deleteProfile = async(req,res) => {
     try {
-        const user = await req.user.remove()
-        sendGoodbyeEmail(user.email,user.name)
-
+        const user = await User.findByCredentials(req.body.email,req.body.password)
         if(!user){
             return res.status(400).send()
         }
+        await req.user.remove()
+        sendGoodbyeEmail(user.email,user.name)
         res.send(req.user)
     } catch(e){
         res.status(400).send(e)
